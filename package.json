@@ -1,0 +1,15 @@
+{
+  "name": "openapi.ts",
+  "version": "0.0.0",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "test": "node test/main.ts"
+  },
+  "keywords": [],
+  "author": "Maki325",
+  "description": "",
+  "dependencies": {
+    "typescript": "5.8.0-beta"
+  }
+}
