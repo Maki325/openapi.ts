@@ -1,18 +1,35 @@
+type OpenApiRoute = {
+  parameters?: Readonly<ParamData[]>;
+} & Record<string, unknown>;
+type OpenApiMethods = Record<string, OpenApiRoute>;
+type OpenApiPaths = Record<string, OpenApiMethods>;
 type OpenApiSpec = {
-  paths: Record<string, unknown>,
+  paths: OpenApiPaths;
 };
 
-type Parsed<T extends OpenApiSpec, Paths extends string = keyof T['paths']> = 
-    {[K in Paths]: ParsePath<K, T['paths'][K]>}[Paths];
+type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-type ParsePath<Path extends string, Methods extends Record<string, unknown>, Method extends string = keyof Methods> =
-  {[K in Method]: ParseMethod<Path, K, Methods[K]>}[Method]
+type Parsed<T extends OpenApiSpec, Paths extends OpenApiPaths = T['paths']> = 
+    {[K in keyof Paths]: ParsePath<K, Paths[K]>}[keyof Paths];
 
-type ParseMethod<Path extends string, Method extends string, MethodData, Key extends string = `${Uppercase<Method>} ${Path}`> = {
-  [key in Key]: {
-    parameters: ParseParameters<MethodData['parameters']>;
-  };
-};
+type ParsePath<
+  Path,
+  Methods extends OpenApiMethods
+> =
+  Path extends string ? {
+    [Method in keyof Methods]: ParseMethod<Path, Method, Methods[Method]>
+  }[keyof Methods] : never
+
+type ParseMethod<
+  Path extends string,
+  Method,
+  MethodData extends OpenApiRoute,
+> = 
+  Method extends string ? {
+    [key in `${Uppercase<Method>} ${Path}`]: {
+      parameters: Writeable<MethodData['parameters']> extends ParamData[] ? Prettify<ParseParameters<Writeable<MethodData['parameters']>>> : undefined;
+    };
+  } : never;
 
 type ParamData = {
   name: string;
